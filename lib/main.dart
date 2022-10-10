@@ -16,7 +16,7 @@ void main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // bit marta accountga kirib sign out qilmagan bolsa keyinga marta
+  // bir marta accountga kirib sign out qilmagan bolsa keyinga marta
   // kirganda login parol so'ramasligi uchun shu Widget yoziladi
   Widget _startPage() {
     return StreamBuilder(

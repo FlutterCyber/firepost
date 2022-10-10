@@ -3,7 +3,6 @@ import 'package:firepost/services/auth_service.dart';
 import 'package:firepost/services/prefs_service.dart';
 import 'package:firepost/services/rtdb_service.dart';
 import 'package:flutter/material.dart';
-
 import '../model/post_model.dart';
 
 class HomePage extends StatefulWidget {
@@ -16,21 +15,20 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  var isLoading = false;
   late List<Post> items = [];
-
-  //Post post = new Post(userId: '123', title: 'Title1', content: 'Content1');
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     _apiGetPosts();
-    // items.add(post);
-    // items.add(post);
-    // items.add(post);
   }
 
   _apiGetPosts() async {
+    setState(() {
+      isLoading = true;
+    });
     var id = await Prefs.loadUserId();
     RTDBService.getPosts(id!).then((posts) => {
           _reponsePosts(posts),
@@ -40,8 +38,10 @@ class _HomePageState extends State<HomePage> {
   _reponsePosts(List<Post> posts) {
     setState(() {
       items.addAll(posts);
+      isLoading = false;
     });
   }
+
   _openDetailPage() {
     Navigator.pushReplacementNamed(context, DetailPage.id);
   }
@@ -61,11 +61,18 @@ class _HomePageState extends State<HomePage> {
         title: Text('All posts'),
         centerTitle: true,
       ),
-      body: ListView.builder(
-          itemCount: items.length,
-          itemBuilder: (ctx, i) {
-            return itemOfList(items[i]);
-          }),
+      body: Stack(
+        children: [
+          ListView.builder(
+              itemCount: items.length,
+              itemBuilder: (ctx, i) {
+                return itemOfList(items[i]);
+              }),
+          isLoading
+              ? Center(child: CircularProgressIndicator())
+              : SizedBox.shrink(),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           _openDetailPage();
@@ -79,24 +86,38 @@ class _HomePageState extends State<HomePage> {
   Widget itemOfList(Post item) {
     return Container(
       padding: EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Text(
-            item.title,
-            style: TextStyle(fontSize: 20, color: Colors.black),
-          ),
+          Container(
+              height: 70,
+              width: 70,
+              child: item.img_url != null
+                  ? Image.network(
+                      item.img_url,
+                      fit: BoxFit.cover,
+                    )
+                  : Image.asset("assets/images/default_image.jpeg")),
           SizedBox(
-            height: 10,
+            width: 15,
           ),
-          Text(
-            item.content,
-            style: TextStyle(color: Colors.black, fontSize: 18),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                item.title,
+                style: TextStyle(fontSize: 20, color: Colors.black),
+              ),
+              SizedBox(
+                height: 10,
+              ),
+              Text(
+                item.content,
+                style: TextStyle(color: Colors.black, fontSize: 18),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
-
-
 }
